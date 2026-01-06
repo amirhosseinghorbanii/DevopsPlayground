@@ -1,0 +1,43 @@
+mysql:
+  image: mysql:8.4
+  container_name: mysql
+  restart: always
+  env_file:
+    - .env
+  volumes:
+    - mysql_data:/var/lib/mysql
+    - ./mysql/conf.d:/etc/mysql/conf.d:ro
+    - ./mysql/logs:/logs
+    - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
+    - ./ssl/cert.pem:/var/lib/mysql/ca.pem
+    - ./ssl/ca.pem:/var/lib/mysql/server-cert.pem
+    - ./ssl/key.pem:/var/lib/mysql/server-key.pem
+  healthcheck:
+    test: ["CMD-SHELL", "mysqladmin ping -h localhost -p$$MYSQL_ROOT_PASSWORD || exit 1"]
+    interval: 10s
+    timeout: 5s
+    retries: 5
+  deploy:
+    resources:
+      limits:
+        cpus: "4"
+        memory: 8G
+mysql-haproxy:
+  image: haproxy:2.9
+  container_name: haproxy
+  restart: always
+  depends_on:
+    mysql:
+      condition: service_healthy
+  ports:
+    - "4006:4006"
+  volumes:
+    - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+  deploy:
+    resources:
+      limits:
+        cpus: "2"
+        memory: 2G
+volumes:
+  mysql_data:
+    driver: local
