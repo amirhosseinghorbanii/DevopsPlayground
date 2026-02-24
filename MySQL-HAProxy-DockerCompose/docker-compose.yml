@@ -31,6 +31,6 @@ services:
     volumes:
       - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
 
-  volumes:
-    mysql_data:
-      driver: local
+volumes:
+  mysql_data:
+    driver: local
